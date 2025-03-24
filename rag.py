@@ -29,7 +29,6 @@ class IOIntelligence(VannaBase):
 
   def generate_sql(self, question: str, **kwargs) -> str:
         # Use the super generate_sql
-        print("generate_sql:",question)
         question += """ Note: Very important: generate sql with fully qualified table_names i.e {schema_name}.{table_name} example block_rewards.blocks Always follow this one and also make sure to 
         add `FORMAT JSON` at the end of the query to get the results in json code
         Two important points:
@@ -38,20 +37,19 @@ class IOIntelligence(VannaBase):
         
         """
         sql = super().generate_sql(question, **kwargs)
-        print(sql)
         # Replace "\_" with "_"
         sql = sql.replace("\\_", "_")
 
         return sql
   def __clickhouse_capacity_prompt(self):
-       return """
+       return ["""
        "Note: Important! make sure you generate query to scan and load as less data as possible (because clickhouse as some capacity quota assigned for this user) "
             for example if user asks for more than 15 days for large data go back to 10 days query.
-      """
+      """]
   
 #   @observe()
   def submit_prompt(self, prompt, **kwargs) -> str:
-      prompt += prompt + self.__clickhouse_capacity_prompt
+      prompt += prompt + self.__clickhouse_capacity_prompt()
       ai_msg = self.llm.invoke(prompt,config={"callbacks": [get_langfuse_handler()]})
       return ai_msg.content
 
