@@ -5,6 +5,7 @@ from qdrant_client import QdrantClient
 from streamlit_extras.chart_container import chart_container
 from train_layout import train_layout
 from about_us import about_us_layout
+from data_source import data_source_layout
 from database import query_clickhouse
 # Define CSS styles
 css = """
@@ -98,7 +99,10 @@ def chat_layout(vn):
 
 
 
-layout_dict = {"Talk to Data": chat_layout,"Training":train_layout,"About IO":about_us_layout}
+layout_dict = {"Talk to Data": chat_layout,
+               "Blockchain Data Source":data_source_layout,
+               "Training":train_layout,
+               "About IO":about_us_layout}
 
 def main_layout():
     col1, col2 = st.columns(2)
