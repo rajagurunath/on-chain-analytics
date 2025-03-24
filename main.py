@@ -40,9 +40,13 @@ vn.run_sql = query_clickhouse
 vn.run_sql_is_set = True
 
 def get_text():
-    input_text = st.text_input(
-        "You: ", "", key="input", placeholder="Talk to your data"
-    )
+    col1, col2 = st.columns([0.75, 7])  # Adjust ratio for icon vs input
+    with col1:
+        st.image("https://pbs.twimg.com/media/GOSmqxhWkAAjtPm?format=jpg", width=50)  # Icon sized image
+    with col2:
+        input_text = st.text_input(
+            "io warrier: ", "", key="input", placeholder="Talk to block chain data"
+        )
     return input_text
 
 def generate_markdown_list(questions):
@@ -52,6 +56,14 @@ def generate_markdown_list(questions):
     markdown_list = "\n".join(f"- {q}" for q in questions)
     return markdown_list
 
+# Sample blockchain questions
+SAMPLE_QUESTIONS = [
+    "What is the transaction trend in solana ?",
+    "Show me the top 10 wallets by balance",
+    "What is the average gas price over the last week?",
+    "what are all the top programs by instruction count ?",
+    "what is the daily fees trend in solana ?",
+]
 
 # use cache carefully it may repeat the same error
 @st.cache_data
@@ -64,13 +76,12 @@ def query(user_input):
     followup_questions = vn.generate_followup_questions(question=user_input,sql=sql,df=df,n_questions=5)
     return {"sql":sql,"df":df,"plotly_fig":fig,"followup_questions":followup_questions,"explain":explain}
 
-def chat_layout(vn):
-    
-    user_input = get_text()
+def model_chat(user_input):
     if user_input and (user_input != ""):
         placeholder = st.empty()
         with placeholder:
             try:
+                st.write(st.session_state.sample_question)
                 output = query(user_input)
                 df = output["df"]
                 sql = output["sql"]
@@ -98,8 +109,29 @@ def chat_layout(vn):
                 st.warning(f"Its not you, its us... we have noted this error, will be working to fix this error soon : - {e}")
 
 
+def chat_layout(vn):
+    # Initialize session state for sample question if not exists
+    if 'sample_question' not in st.session_state:
+        st.session_state.sample_question = None
+    
+    # Get user input first
+    user_input = get_text()
+    
+    # Display numbered sample questions below input
+    st.subheader("Sample Questions")
+    for idx, question in enumerate(SAMPLE_QUESTIONS, 1):
+        if st.button(f"{idx}. {question}"):
+            st.session_state.sample_question = question
+            st.rerun()
+    
+    # Process either the user input or sample question
+    if user_input:
+        model_chat(user_input)
+    elif st.session_state.sample_question:
+        model_chat(st.session_state.sample_question)
 
-layout_dict = {"Talk to Data": chat_layout,
+
+layout_dict = {"Real Time BlockChain Analytics": chat_layout,
                "Blockchain Data Source":data_source_layout,
                "Training":train_layout,
                "About IO":about_us_layout}
